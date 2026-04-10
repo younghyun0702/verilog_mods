@@ -1,0 +1,55 @@
+# Vivado generated files
+*.jou
+*.log
+*.str
+*.pb
+*.wdb
+*.xpi
+*.webtalk
+*.cache
+*.cache/
+*.hw
+*.hw/
+*.sim
+*.sim/
+*.runs
+*.runs/
+*.backup
+*.tmp
+*.retry
+*.xml
+*.link
+*.dir
+*.log*
+*.jou*
+*.pb*
+*.wdb*
+*.vcd
+
+# Project build outputs
+*.rpt
+*.dcp
+*.xpe
+*.xci
+*.bit
+*.bin
+*.sdx
+*.jou
+*.mti*
+
+# Vivado auto-generated folders
+ip_user_files/
+*.ip_user_files/
+webtalk/
+Xil/
+
+# Temporary files
+*~
+*.swp
+*.swo
+*.tmp
+*.cache
+
+# Windows thumbnail and metadata
+Thumbs.db
+.DS_Store
