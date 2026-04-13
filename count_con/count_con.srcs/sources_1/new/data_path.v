@@ -20,13 +20,13 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module data_path#(
+module data_path #(
     parameter integer CLK_FREQ_HZ = 100_000_000,
     parameter integer TICK_HZ = 10
 ) (
     input clk,
     input rst,
-    
+
     output [13:0] tick_counter
 );
 
