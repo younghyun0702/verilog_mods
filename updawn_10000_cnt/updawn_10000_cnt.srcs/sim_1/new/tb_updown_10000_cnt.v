@@ -3,61 +3,134 @@
 module tb_updown_10000_cnt ();
     reg clk;
     reg rst;
-    reg [2:0] sw;
+    reg btnD, btnL, btnR;
     wire [3:0] fnd_com;
     wire [7:0] fnd_data;
 
+    //디바운스 회로 주기 100kHz에서 1MHz로 수정
+    //버튼 입력 후 디바운신된 신호 1번 입력 밭으려면 클럭의 800주기 동안 기다리기 
+    //따라서 버튼 1회 입력을 800nS로 정의
+    //
+    //입력 후 카운팅 동작 을 보기 위해서 0.1초에 1 카운팅 인점을 고려하여 100_000_000당 1카운트 
+    //하지만 이것또한 가시성을 위해 카운팅 주파수 10Hz에서 1000Hz로 모듈 수정
+    //따라서 한 카운팅 1_000_000
 
-    // #1 == 1nS 따라서 100MHz 한 주기 10nS
-    parameter SEC_0_1 = 100_000_000;  // 0.1초 정의
-    parameter SEC = 1_000_000_000;  // 1초 정의
+    parameter PUSH = 100;  //버튼 입력 시간
+    parameter CNT1 = 1_000_000;  // 1카운트 정의
     parameter TIME = 10;  // 100MHz 한주기 정의
 
     updown_10000_cnt UUT (
-        .clk(clk),
-        .rst(rst),
-        .sw(sw),
-        .fnd_com(fnd_com),
-        .fnd_data(fnd_data)
+        .clk (clk),
+        .rst (rst),
+        .btnD(btnD),
+        .btnL(btnL),
+        .btnR(btnR)
     );
 
+    wire [ 1:0] state;
+    wire [13:0] count;
+    wire db_btnD, db_btnL, db_btnR;
+
+    assign state   = UUT.U_control.current_state;
+    assign count   = UUT.U_DATAPATH.tick_counter;
+    assign db_btnD = UUT.U_BD_MODE.o_btn;
+    assign db_btnL = UUT.U_BD_CLEAR.o_btn;
+    assign db_btnR = UUT.U_BD_RUNSTOP.o_btn;
+
     always #5 clk = ~clk;  // 100MHz clock
-    // sw0 : run(1)/stop(0) 모드, 
-    // sw1 : reset(1) /run(0)버튼, 
-    // sw2 : up(0)/dowm(1)버튼 
+
 
     initial begin
-        clk = 0;  // 클럭 0으로 초기화
-        // 시나리오 순서로 검증 
-        #20;
-        // 초기화
-        rst   = 1;
-        sw[2] = 0;
-        sw[1] = 0;
-        sw[0] = 1;
-        // 업카운팅 동작
-        #25;
-        rst   = 0;
-        sw[2] = 0;
-        sw[1] = 0;
-        sw[0] = 1;  // run모드
-        #(SEC);  //2초카운팅 기다림
 
-        //stop 동작 확인
-        sw[0] = 0;
-        #(3 * SEC_0_1);  // stop모드
+        //1.초기화
+        clk  = 0;  // 클럭 0으로 초기화
+        rst  = 1;
+        btnD = 0;
+        btnL = 0;
+        btnR = 0;
+        @(negedge clk);
+        @(negedge clk);
+        rst  = 0;
 
-        //업카운트 
-        sw[1] = 1;
-        #(3 * SEC_0_1);  //다시 RUN
+        //2.UP COUNT 시작
+        btnR = 1;
+        repeat (100) @(negedge clk);
+        btnR = 0;
+        #(CNT1 * 20);
 
-        sw[2] = 0;
-        sw[1] = 0;
-        sw[0] = 1;  // run모드
-        #(5 * SEC_0_1);  //2초카운팅 기다림
+        //3. STOP기능 RUN에서 STOP으로 복귀
+        btnR = 1;
+        repeat (100) @(negedge clk);
+        btnR = 0;
+        #(CNT1 * 10);
+
+        //4. 카운트 모드 줜환 MODE -> ~MODE 로 변화
+        btnD = 1;
+        repeat (100) @(negedge clk);
+        btnD = 0;
+        #(CNT1 * 5);
+
+        //5.DOWN COUNT 시작
+        btnR = 1;
+        repeat (100) @(negedge clk);
+        btnR = 0;
+        #(CNT1 * 30);
+        ////////
+        //STOP기능 RUN에서 STOP으로 복귀
+        btnR = 1;
+        repeat (100) @(negedge clk);
+        btnR = 0;
+        ////////
+
+        //6. CLEAR 동작
+        btnL = 1;
+        repeat (100) @(negedge clk);
+        btnL = 0;
+
+        repeat (1200) @(negedge clk);
+        //7. 우선순위 확인
+        btnL = 1;
+        btnD = 1;
+        repeat (100) @(negedge clk);
+        btnL = 0;
+        btnD = 0;
+
+        @(negedge clk);
+        @(negedge clk);
+
+        //7. 우선순위 확인
+        btnL = 1;
+        btnD = 1;
+        btnR = 1;
+        repeat (100) @(negedge clk);
+        btnL = 0;
+        btnD = 0;
+        btnR = 0;
+
+        @(negedge clk);
+        @(negedge clk);
+
+        //7. 우선순위 확인
+        btnL = 1;
+        btnD = 1;
+        btnR = 1;
+        repeat (100) @(negedge clk);
+        btnL = 0;
+        btnD = 0;
+        btnR = 0;
 
 
-        $stop;
+        repeat (800) @(negedge clk);
+        //7. 우선순위 확인
+        btnL = 1;
+        btnD = 1;
+        btnR = 1;
+        repeat (100) @(negedge clk);
+        btnL = 0;
+        btnD = 0;
+        btnR = 0;
+
+        repeat (800) @(negedge clk) $stop;
     end
 
     /*
