@@ -148,6 +148,7 @@ module tick_counter #(
     output reg                   o_tick
 );
 
+
     reg [BIT_WIDTH-1:0] counter_reg, counter_next;
 
     always @(posedge clk, posedge rst) begin

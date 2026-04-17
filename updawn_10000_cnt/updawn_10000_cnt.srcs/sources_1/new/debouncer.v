@@ -10,7 +10,7 @@ module debouncer (
     parameter F_COUNT = 100_000_000 / 10_000_000;
     reg [$clog2(F_COUNT)-1:0] r_counter;
     reg clk_100khz;
-    wire w_w_debouncer;
+    wire w_debouncer;
 
     always @(posedge clk, posedge rst) begin
         if (rst) begin
@@ -59,3 +59,5 @@ module debouncer (
     assign o_btn = w_debouncer & (~edge_reg);
 
 endmodule
+
+
