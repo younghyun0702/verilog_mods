@@ -2,11 +2,11 @@
 
 module fnd_controller #(
     parameter MAIN_CLK_100MHZ = 100_000_000,
-    parameter SCAN_HZ     = 1000,
-    parameter MSEC_WIDTH  = 7,
-    parameter SEC_WIDTH   = 6,
-    parameter MIN_WIDTH   = 6,
-    parameter HOUR_WIDTH  = 5
+    parameter SCAN_HZ         = 1000,
+    parameter MSEC_WIDTH      = 7,
+    parameter SEC_WIDTH       = 6,
+    parameter MIN_WIDTH       = 6,
+    parameter HOUR_WIDTH      = 5
 ) (
     input                     clk,
     input                     rst,
@@ -26,8 +26,9 @@ module fnd_controller #(
     wire [3:0] w_sec_digit_1, w_sec_digit_10;
     wire [3:0] w_min_digit_1, w_min_digit_10;
     wire [3:0] w_hour_digit_1, w_hour_digit_10;
-    wire [1:0] w_digit_sel;
+    wire [2:0] w_digit_sel;
     wire       w_1khz;
+    wire       half_sec_sig;
 
     //digit split
     digit_splitter #(
@@ -61,7 +62,7 @@ module fnd_controller #(
         .digit_1(w_hour_digit_1),
         .digit_10(w_hour_digit_10)
     );
-
+    /*
     mux_4x1 U_MUX_MSEC_SEC (
         .in0    (w_msec_digit_1),     // digit 1
         .in1    (w_msec_digit_10),    // digit 10
@@ -77,6 +78,32 @@ module fnd_controller #(
         .in2    (w_hour_digit_1),     // digit 100
         .in3    (w_hour_digit_10),    // digit 1000
         .sel    (w_digit_sel),        // to select input
+        .out_mux(w_out_mux_min_hour)
+    );
+    */
+    mux_8x1 U_MUX_MSEC_SEC (
+        .in0    (w_msec_digit_1),          // digit 1
+        .in1    (w_msec_digit_10),         // digit 10
+        .in2    (w_sec_digit_1),           // digit 100
+        .in3    (w_sec_digit_10),          // digit 1000
+        .in4    (4'hf),                    // digit 1
+        .in5    (4'hf),                    // digit 10
+        .in6    ({3'b111, half_sec_sig}),  // digit 100
+        .in7    (4'hf),                    // digit 1000
+        .sel    (w_digit_sel),             // to select input
+        .out_mux(w_out_mux_msec_sec)
+    );
+
+    mux_8x1 U_MUX_MIN_HOUR (
+        .in0    (w_min_digit_1),           // digit 1
+        .in1    (w_min_digit_10),          // digit 10
+        .in2    (w_hour_digit_1),          // digit 100
+        .in3    (w_hour_digit_10),         // digit 1000
+        .in4    (4'hf),
+        .in5    (4'hf),
+        .in6    ({3'b111, half_sec_sig}),
+        .in7    (4'hf),
+        .sel    (w_digit_sel),             // to select input
         .out_mux(w_out_mux_min_hour)
     );
 
@@ -102,7 +129,15 @@ module fnd_controller #(
         .o_1khz(w_1khz)
     );
 
+    /*
     counter_4 U_COUNTER_4 (
+        .clk(w_1khz),
+        .rst(rst),
+        .digit_sel(w_digit_sel)
+    );
+    */
+
+    counter_8 U_COUNTER_8 (
         .clk(w_1khz),
         .rst(rst),
         .digit_sel(w_digit_sel)
@@ -110,8 +145,13 @@ module fnd_controller #(
 
 
     decoder_2x4 U_DECODER_2x4 (
-        .decoder_in(w_digit_sel),
+        .decoder_in(w_digit_sel[1:0]),
         .fnd_com(fnd_com)
+    );
+
+    comparator U_COMPARATOR (
+        .msec(msec),
+        .half_sec_sig(half_sec_sig)
     );
 
 endmodule
@@ -150,13 +190,33 @@ module clk_div_1khz #(
     end
 
 endmodule
-
+/*
 module counter_4 (
     input clk,
     input rst,
     output [1:0] digit_sel
 );
     reg [1:0] counter_reg;
+
+    assign digit_sel = counter_reg;  // 4가지 경우
+
+    always @(posedge clk, posedge rst) begin //clk 신호의 상승엣지가 발생할때마다 begin end 구현해라
+        if (rst) begin
+            counter_reg <= 0;  // 0 초기화 <= 0
+        end else begin
+            counter_reg <= counter_reg + 1;
+        end
+    end
+
+endmodule
+*/
+
+module counter_8 (
+    input clk,
+    input rst,
+    output [2:0] digit_sel
+);
+    reg [2:0] counter_reg;
 
     assign digit_sel = counter_reg;  // 4가지 경우
 
@@ -228,6 +288,39 @@ module mux_4x1 (
 endmodule
 
 
+
+module mux_8x1 (
+    input [3:0] in0,  // digit 1
+    input [3:0] in1,  // digit 10
+    input [3:0] in2,  // digit 100
+    input [3:0] in3,  // digit 1000
+    input [3:0] in4,  //
+    input [3:0] in5,  //
+    input [3:0] in6,  // 
+    input [3:0] in7,  //
+    input [2:0] sel,  // to select input
+    output [3:0] out_mux
+);
+    reg [3:0] out_reg;
+    assign out_mux = out_reg;
+
+    // mux, (*) all input : sensitivity list
+    always @(*  /*in0, in1, in2, in3, sel*/) begin
+        case (sel)
+            3'b000:  out_reg = in0;
+            3'b001:  out_reg = in1;
+            3'b010:  out_reg = in2;
+            3'b011:  out_reg = in3;
+            3'b100:  out_reg = in4;
+            3'b101:  out_reg = in5;
+            3'b110:  out_reg = in6;
+            3'b111:  out_reg = in7;
+            default: out_reg = 4'b0000;
+        endcase
+    end
+endmodule
+
+
 module bcd (
     input [3:0] bin,
     output reg [7:0] bcd_data
@@ -249,8 +342,8 @@ module bcd (
             4'b1011: bcd_data = 8'h83;
             4'b1100: bcd_data = 8'hC6;
             4'b1101: bcd_data = 8'hA1;
-            4'b1110: bcd_data = 8'h86;
-            4'b1111: bcd_data = 8'h8E;
+            4'b1110: bcd_data = 8'h7F;
+            4'b1111: bcd_data = 8'hFF;
             default: bcd_data = 8'hFF;
         endcase
     end
@@ -266,4 +359,15 @@ module mux_2x1 (
 
     assign out_mux = (sel) ? in1 : in0;  // in0 : msec_sec, min_hour
 
+endmodule
+
+module comparator (
+    input      [6:0] msec,
+    output reg       half_sec_sig
+);
+
+    always @(*) begin
+        if (msec < 50) half_sec_sig = 0;
+        else half_sec_sig = 1;
+    end
 endmodule

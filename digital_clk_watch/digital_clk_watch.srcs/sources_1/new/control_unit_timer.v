@@ -23,7 +23,7 @@ module control_unit_timer (
     reg [1:0] current_state, next_state;
 
     assign o_mode = mode_state;
-    assign l_led  = sw;
+    assign o_led  = sw;
 
     always @(posedge clk or posedge rst) begin
         if (rst) begin
