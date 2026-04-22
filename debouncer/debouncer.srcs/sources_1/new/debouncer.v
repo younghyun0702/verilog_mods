@@ -1,14 +1,17 @@
 `timescale 1ns / 1ps
 
 
-module debouncer (
+module debouncer #(
+    parameter CLK_100MHZ = 100_000_000,
+    parameter DB_HZ = 100_000
+) (
     input  clk,
     input  rst,
     input  i_btn,
     output o_btn
-);  
+);
 
-    parameter F_COUNT = 100_000_000 / 1000_000;
+    localparam F_COUNT = CLK_100MHZ / DB_HZ;
     reg [$clog2(F_COUNT)-1:0] r_counter;
     reg clk_100khz;
     wire w_debouncer;
@@ -42,7 +45,7 @@ module debouncer (
     end
 
     always @(*) begin
-        sync_next = {i_btn, sync_reg[7:1]};
+        sync_next = {sync_reg[6:0], i_btn};
     end
 
     assign w_debouncer = &sync_reg;
@@ -60,5 +63,3 @@ module debouncer (
     assign o_btn = w_debouncer & (~edge_reg);
 
 endmodule
-
-

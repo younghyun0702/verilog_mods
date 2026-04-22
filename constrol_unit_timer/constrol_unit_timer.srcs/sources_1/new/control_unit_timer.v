@@ -49,6 +49,7 @@ module control_unit_timer (
         endcase
     end
 
+//  출력
     always @(*) begin
         o_run_stop = 0;
         o_clear    = 0;
