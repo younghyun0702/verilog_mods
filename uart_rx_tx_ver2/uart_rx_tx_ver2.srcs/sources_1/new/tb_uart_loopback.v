@@ -1,8 +1,8 @@
 `timescale 1ns / 1ps
 
 module tb_uart_loopback ();
-
-    parameter BAUD_PERIOD = (100_000_000 / 9600) * 10;  //한클럭 10n
+    parameter BAUD_DELAY = 2000;
+    parameter BAUD_PERIOD = (100_000_000 / 9600) * 10 - BAUD_DELAY;  //한클럭 10n
     reg [7:0] compare_data;
 
     reg clk, rst, rx;
@@ -51,6 +51,16 @@ module tb_uart_loopback ();
 
         repeat (10000) @(negedge clk);
 
+        SENDER_UART(compare_data);
+        SENDER_UART(compare_data);
+        SENDER_UART(compare_data);
+        SENDER_UART(compare_data);
+        SENDER_UART(compare_data);
+        SENDER_UART(compare_data);
+        SENDER_UART(compare_data);
+        SENDER_UART(compare_data);
+        SENDER_UART(compare_data);
+        SENDER_UART(compare_data);
         SENDER_UART(compare_data);
 
         #(BAUD_PERIOD * 10);

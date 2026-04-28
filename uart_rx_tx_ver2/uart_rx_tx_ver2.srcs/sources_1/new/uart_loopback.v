@@ -151,7 +151,7 @@ module uart_rx (
 
             STOP: begin
                 if (b_tick) begin
-                    if (b_tick_cnt_reg == 23) begin
+                    if ((b_tick_cnt_reg == 23) || ((b_tick_cnt_reg>16)&& !rx)) begin
                         rx_done_next = 1'b1;
                         n_state = IDLE;
                     end else begin
@@ -293,7 +293,7 @@ module baud_tick_gen (
     input      rst,
     output reg o_b_tick
 );
-    parameter F_COUNT = 100_000_000 / (9600 * 20); // 주파수를 16배 올릴거라서 * 16 : 651까지임
+    parameter F_COUNT = 100_000_000 / (9600 * 16); // 주파수를 16배 올릴거라서 * 16 : 651까지임
     parameter WIDTH = $clog2(F_COUNT) - 1;
 
     reg [WIDTH:0] counter_reg;  // counter 해줄 도구
