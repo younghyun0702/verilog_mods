@@ -7,8 +7,8 @@ module ascii_sender (
     input        i_btnS,
     input [ 1:0] sw,
     input [23:0] i_time_data,
-    // input [10:0] i_sensor_sr04,
-    // input [10:0] i_sensor_sr04,
+    input [11:0] i_sensor_sr04,
+    input [16:0] i_sensor_dht11,
 
     output [7:0] push_data,
     output       push
@@ -26,39 +26,116 @@ module ascii_sender (
     parameter NINE = 8'h39;
     parameter COLON = 8'h3A;
     parameter EQUALS = 8'h3D;
+    parameter CR = 8'h0D;
+    parameter SMALL_S = 8'h73;
+    parameter C = 8'h43;
+    parameter DEG = 8'hB0;
+    parameter CAP_S = 8'h53;
+    parameter W = 8'h57;
+    parameter T = 8'h54;
+    parameter R = 8'h52;
+    parameter D = 8'h44;
+    parameter H = 8'h48;
+    parameter SMALL_T = 8'h74;
 
     parameter IDLE = 0, FULL = 1, DATA_PUSH = 2;
 
-    reg [7:0] setup_data_reg [0:15];
-    reg [7:0] setup_data_next[0:15];
+    reg [7:0] setup_data_reg [0:20];
+    reg [7:0] setup_data_next[0:20];
     reg [1:0] state_reg, state_next;
-    reg [3:0] byte_count_reg, byte_count_next;
+    reg [5:0] byte_count_reg, byte_count_next;
     reg [7:0] data_reg, data_next;
     reg push_reg, push_next;
-    reg [3:0] count_data;
+    reg [5:0] count_data;
 
     assign push_data = data_reg;
     assign push = push_reg;
     integer i, j;
 
+    /*
+    출력 데이터 정의
+    시계 :
+    wt=00:00:00s \n
+    13byte
+
+    스탑워치
+    sw=00:00:00s \n
+    13byte
+
+    초음파
+    sr04=000cm \n
+    11byte
+
+    온습도
+    dht \n
+    temp=00도씨 \n
+    humi=11
+    21byte  
+
+*/
+
+
+    task sr042ascii;
+        input [11:0] data;
+        begin
+            setup_data_next[0]  = CAP_S;
+            setup_data_next[1]  = R;
+            setup_data_next[2]  = ZERO;
+            setup_data_next[3]  = FOUR;
+            setup_data_next[4]  = EQUALS;
+
+            setup_data_next[5]  = data[11:8] + 8'h30;
+            setup_data_next[6]  = data[7:4] + 8'h30;
+            setup_data_next[7]  = data[3:0] + 8'h30;
+
+            setup_data_next[8]  = DEG;
+            setup_data_next[9]  = C;
+            setup_data_next[10] = CR;
+        end
+    endtask
+
+    task dht2ascii;
+        input [16:0] data;
+        begin
+            setup_data_next[0]  = CAP_S;
+            setup_data_next[1]  = R;
+            setup_data_next[2]  = ZERO;
+            setup_data_next[3]  = FOUR;
+            setup_data_next[4]  = EQUALS;
+
+            setup_data_next[5]  = data[11:8] + 8'h30;
+            setup_data_next[6]  = data[7:4] + 8'h30;
+            setup_data_next[7]  = data[3:0] + 8'h30;
+
+            setup_data_next[8]  = DEG;
+            setup_data_next[9]  = C;
+            setup_data_next[10] = CR;
+        end
+    endtask
+
     task data2ascii;
         input [23:0] data;
-        integer n;
-        // sw = 00 : 00 : 00 : 00
-        for (n = 0; n < 16; n = n + 1) begin
-            if ((n == 2) || (n == 5) || (n == 8) || (n == 11)) begin
-                if ((n == 2)) setup_data_next[n] = EQUALS;
-                else setup_data_next[n] = COLON;
+        input [1:0] sw;
+        begin
+            if (sw == 2'b00) begin  //시계
+                setup_data_next[0] = W;
+                setup_data_next[1] = T;
             end else begin
-                //bcd 값 이용하는것이 좋아보임
-                //센서값 또한 bcd로
-                // case()
-
-
-
-
-                // endcase
+                setup_data_next[0] = CAP_S;
+                setup_data_next[1] = W;
             end
+            setup_data_next[2]  = EQUALS;
+            setup_data_next[3]  = data[23:20] + 8'h30;
+            setup_data_next[4]  = data[19:16] + 8'h30;
+            setup_data_next[5]  = COLON;
+
+            setup_data_next[6]  = data[15:12] + 8'h30;
+            setup_data_next[7]  = data[11:8] + 8'h30;
+            setup_data_next[8]  = COLON;
+
+            setup_data_next[9]  = data[7:4] + 8'h30;
+            setup_data_next[10] = data[3:0] + 8'h30;
+            setup_data_next[11] = SMALL_S;
         end
     endtask
 
@@ -97,16 +174,19 @@ module ascii_sender (
 
         case (sw)
             2'b00: begin
-                count_data = 4'd15;
+                data2ascii(i_time_data, sw);
+                count_data = 4'd12;
             end
             2'b01: begin
-                count_data = 4'd15;
+                data2ascii(i_time_data, sw);
+                count_data = 4'd12;
             end
             2'b10: begin
-                count_data = 4'd10;  /*초음파*/
+                sr042ascii(i_sensor_sr04);
+                count_data = 4'd11;  /*초음파*/
             end
             2'b11: begin
-                count_data = 4'd10;  /*온습도*/
+                count_data = 4'd21;  /*온습도*/
             end
 
         endcase
