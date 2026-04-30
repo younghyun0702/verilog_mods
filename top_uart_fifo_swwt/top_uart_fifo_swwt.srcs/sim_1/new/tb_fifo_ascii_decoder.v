@@ -27,7 +27,7 @@ module tb_fifo_ascii_decoder ();
 
     ascii_decoder U_AS_DE (
         .clk(clk),
-        .rst(clk),
+        .rst(rst),
         .i_rx_empty(w_empty),
         .btn_data(w_pop_data),
         .pop(w_pop),
