@@ -53,7 +53,7 @@ module ascii_decoder (
                     /*L*/8'h4C, 8'h6C: btnL = 1;
                     /*U*/8'h55, 8'h75: btnU = 1;
                     /*D*/8'h44, 8'h64: btnD = 1;
-                    /*D*/8'h53, 8'h73: btnD = 1;
+                    /*D*/8'h53, 8'h73: btnS = 1;
                 endcase
             end
         endcase
