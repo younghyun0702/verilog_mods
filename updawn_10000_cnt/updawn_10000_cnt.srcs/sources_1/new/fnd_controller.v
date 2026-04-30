@@ -9,6 +9,7 @@ module fnd_controller #(
     input [13:0] fnd_in,
     output [3:0] fnd_com,
     output [7:0] fnd_data
+    
 );
 
     wire [3:0] w_out_mux;
@@ -150,7 +151,6 @@ module digit_splitter (
     assign digit_10 = (digit_in / 10) % 10;  // digit 10
     assign digit_100 = (digit_in / 100) % 10;  // digit 100
     assign digit_1000 = (digit_in / 1000) % 10;  // digit 1000
-
 
 
 endmodule
