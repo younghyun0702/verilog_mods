@@ -8,11 +8,15 @@ module ascii_sender (
     input [ 1:0] sw,
     input [23:0] i_time_data,
     input [11:0] i_sensor_sr04,
-    input [16:0] i_sensor_dht11,
+    input [15:0] i_sensor_dht11,
 
     output [7:0] push_data,
     output       push
 );
+
+    parameter CNT_TIME = 12;
+    parameter CNT_SR = 10;
+    parameter CNT_DHT = 21;
 
     parameter ZERO = 8'h30;
     parameter ONE = 8'h31;
@@ -24,19 +28,31 @@ module ascii_sender (
     parameter SEVEN = 8'h37;
     parameter EIGHT = 8'h38;
     parameter NINE = 8'h39;
-    parameter COLON = 8'h3A;
-    parameter EQUALS = 8'h3D;
-    parameter CR = 8'h0D;
-    parameter SMALL_S = 8'h73;
-    parameter C = 8'h43;
-    parameter DEG = 8'hB0;
+
+    parameter COLON = 8'h3A;  // :
+    parameter EQUALS = 8'h3D;  // =
+    parameter CR = 8'h0D;  // \n
+    parameter DEG = 8'hB0;  // '
+
+
+    parameter CAP_C = 8'h43;
+    parameter CAP_D = 8'h44;
+    parameter CAP_H = 8'h48;
+    parameter CAP_R = 8'h52;
     parameter CAP_S = 8'h53;
-    parameter W = 8'h57;
-    parameter T = 8'h54;
-    parameter R = 8'h52;
-    parameter D = 8'h44;
-    parameter H = 8'h48;
+    parameter CAP_T = 8'h54;
+    parameter CAP_W = 8'h57;
+
+    parameter SMALL_C = 8'h63;
+    parameter SMALL_E = 8'h65;
+    parameter SMALL_H = 8'h68;
+    parameter SMALL_I = 8'h69;
+    parameter SMALL_M = 8'h6D;
+    parameter SMALL_P = 8'h70;
+    parameter SMALL_S = 8'h73;
     parameter SMALL_T = 8'h74;
+    parameter SMALL_U = 8'h75;
+
 
     parameter IDLE = 0, FULL = 1, DATA_PUSH = 2;
 
@@ -46,7 +62,7 @@ module ascii_sender (
     reg [5:0] byte_count_reg, byte_count_next;
     reg [7:0] data_reg, data_next;
     reg push_reg, push_next;
-    reg [5:0] count_data;
+    reg [4:0] count_data;
 
     assign push_data = data_reg;
     assign push = push_reg;
@@ -69,17 +85,50 @@ module ascii_sender (
     온습도
     dht \n
     temp=00도씨 \n
-    humi=11
-    21byte  
+    humi=11 \n
+    22byte  
 
 */
+
+    task dht2ascii;
+        input [15:0] data;
+        begin
+            setup_data_next[0]  = CAP_D;
+            setup_data_next[1]  = CAP_H;
+            setup_data_next[2]  = CAP_T;
+            setup_data_next[10] = CR;
+
+
+            setup_data_next[3]  = SMALL_T;
+            setup_data_next[4]  = SMALL_E;
+            setup_data_next[5]  = SMALL_M;
+            setup_data_next[6]  = SMALL_P;
+            setup_data_next[4]  = EQUALS;
+            setup_data_next[5]  = data[15:11] + 8'h30;
+            setup_data_next[6]  = data[11:8] + 8'h30;
+            setup_data_next[8]  = DEG;
+            setup_data_next[9]  = CAP_C;
+            setup_data_next[10] = CR;
+
+
+            setup_data_next[3]  = SMALL_H;
+            setup_data_next[4]  = SMALL_U;
+            setup_data_next[5]  = SMALL_M;
+            setup_data_next[6]  = SMALL_I;
+            setup_data_next[4]  = EQUALS;
+            setup_data_next[5]  = data[7:4] + 8'h30;
+            setup_data_next[6]  = data[3:0] + 8'h30;
+            setup_data_next[10] = CR;
+
+        end
+    endtask
 
 
     task sr042ascii;
         input [11:0] data;
         begin
             setup_data_next[0]  = CAP_S;
-            setup_data_next[1]  = R;
+            setup_data_next[1]  = CAP_R;
             setup_data_next[2]  = ZERO;
             setup_data_next[3]  = FOUR;
             setup_data_next[4]  = EQUALS;
@@ -88,27 +137,8 @@ module ascii_sender (
             setup_data_next[6]  = data[7:4] + 8'h30;
             setup_data_next[7]  = data[3:0] + 8'h30;
 
-            setup_data_next[8]  = DEG;
-            setup_data_next[9]  = C;
-            setup_data_next[10] = CR;
-        end
-    endtask
-
-    task dht2ascii;
-        input [16:0] data;
-        begin
-            setup_data_next[0]  = CAP_S;
-            setup_data_next[1]  = R;
-            setup_data_next[2]  = ZERO;
-            setup_data_next[3]  = FOUR;
-            setup_data_next[4]  = EQUALS;
-
-            setup_data_next[5]  = data[11:8] + 8'h30;
-            setup_data_next[6]  = data[7:4] + 8'h30;
-            setup_data_next[7]  = data[3:0] + 8'h30;
-
-            setup_data_next[8]  = DEG;
-            setup_data_next[9]  = C;
+            setup_data_next[8]  = SMALL_C;
+            setup_data_next[9]  = SMALL_M;
             setup_data_next[10] = CR;
         end
     endtask
@@ -118,11 +148,11 @@ module ascii_sender (
         input [1:0] sw;
         begin
             if (sw == 2'b00) begin  //시계
-                setup_data_next[0] = W;
-                setup_data_next[1] = T;
+                setup_data_next[0] = CAP_W;
+                setup_data_next[1] = CAP_T;
             end else begin
                 setup_data_next[0] = CAP_S;
-                setup_data_next[1] = W;
+                setup_data_next[1] = CAP_W;
             end
             setup_data_next[2]  = EQUALS;
             setup_data_next[3]  = data[23:20] + 8'h30;
@@ -136,6 +166,8 @@ module ascii_sender (
             setup_data_next[9]  = data[7:4] + 8'h30;
             setup_data_next[10] = data[3:0] + 8'h30;
             setup_data_next[11] = SMALL_S;
+            setup_data_next[10] = CR;
+
         end
     endtask
 
@@ -163,7 +195,6 @@ module ascii_sender (
 
 
     always @(*) begin
-
         state_next = state_reg;
         push_next = push_reg;
         byte_count_next = byte_count_reg;
@@ -175,18 +206,19 @@ module ascii_sender (
         case (sw)
             2'b00: begin
                 data2ascii(i_time_data, sw);
-                count_data = 4'd12;
+                count_data = CNT_TIME;
             end
             2'b01: begin
                 data2ascii(i_time_data, sw);
-                count_data = 4'd12;
+                count_data = CNT_TIME;
             end
             2'b10: begin
                 sr042ascii(i_sensor_sr04);
-                count_data = 4'd11;  /*초음파*/
+                count_data = CNT_SR;  /*초음파*/
             end
             2'b11: begin
-                count_data = 4'd21;  /*온습도*/
+                dht2ascii(i_sensor_dht11);
+                count_data = CNT_DHT;  /*온습도*/
             end
 
         endcase
@@ -198,7 +230,7 @@ module ascii_sender (
                 if (i_btnS && !i_tx_full) begin
                     state_next = DATA_PUSH;
                     byte_count_next = 0;
-                    push_next = 1;
+                    push_next = 1;  //푸쉬 상태가 된 후에 바꿔야 할 수도 있음
 
                 end
             end
@@ -225,9 +257,5 @@ module ascii_sender (
             end
         endcase
     end
-
-
-
-
 
 endmodule
