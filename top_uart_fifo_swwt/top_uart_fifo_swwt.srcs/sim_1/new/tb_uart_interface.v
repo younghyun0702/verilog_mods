@@ -76,13 +76,11 @@ module tb_uart_interface ();
 
             // start bit 기다림
             wait (tx == 1'b0);
-
+            $display($time);
             // start bit 중앙으로 이동
             #(BAUD_PERIOD / 2);
-
             // data bit 중앙으로 이동
             #(BAUD_PERIOD);
-
             for (i = 0; i < 8; i = i + 1) begin
                 data[i] = tx;
                 #(BAUD_PERIOD);
@@ -139,7 +137,9 @@ module tb_uart_interface ();
                 $display("[FAIL] RX cmd %c -> btn = %b, expected = %b", cmd,
                          btn_value, expected_btn);
             end
+
         end
+        // 다음 테스트 시작 전 안정화
     endtask
 
     // ===============================
@@ -193,6 +193,8 @@ module tb_uart_interface ();
                              rx_byte, expected[i]);
                 end
             end
+            wait (tx == 1'b1);
+            #(BAUD_PERIOD * 3);
         end
     endtask
 
@@ -235,6 +237,8 @@ module tb_uart_interface ();
                              rx_byte, expected[i]);
                 end
             end
+            $display("1", $time);
+
         end
     endtask
 
@@ -276,8 +280,12 @@ module tb_uart_interface ();
         $display("====================================");
         $display("TEST 3 : TX stopwatch data check");
         $display("====================================");
+        $display("2", $time);
+
 
         check_tx_string_time(2'b01, 24'h001530);
+        $display("3", $time);
+
 
         $display("====================================");
         $display("TEST 4 : TX SR04 data check");
@@ -292,6 +300,8 @@ module tb_uart_interface ();
         $display("====================================");
 
         #1000;
+
+        $finish;
         $stop;
     end
 

@@ -235,17 +235,16 @@ module ascii_sender (
                 if (send_start && !tx_fifo_full) begin
                     state_next = DATA_PUSH;
                     byte_count_next = 0;
-                    push_next = 1;  //푸쉬 상태가 된 후에 바꿔야 할 수도 있음
 
                 end
             end
             DATA_PUSH: begin
+                push_next = 1;  //푸쉬 상태가 된 후에 바꿔야 할 수도 있음
                 if (!tx_fifo_full) begin
                     byte_count_next = byte_count_reg + 1;
                     data_next = setup_data_reg[byte_count_reg];
                     if (byte_count_reg == count_data_next) begin
                         state_next = IDLE;
-                        push_next  = 0;
                     end
                 end else begin
                     state_next = FULL;

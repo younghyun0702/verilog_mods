@@ -1,32 +1,34 @@
 `timescale 1ns / 1ps
 
-
-
-module dht11 (
+module dht11_sensor (
     input clk,
     input rst,
-    input btnR,
-    output [3:0] fnd_com,
-    output [7:0] fnd_data,
-    // output [7:0] humidity,
-    // output [7:0] temperature,
+    input dht11_start,
+    output [7:0] humi_bcd,
+    output [7:0] temp_bcd,
     output led_valid,
     inout dht11
 );
 
-    wire w_tick_us, w_btnR;
-    wire [7:0] w_humidity, w_temperature;
-    wire [13:0] w_fnd_in_hum, w_fnd_in_temp;
-
-    assign humidity = w_humidity;
-    assign temperature = w_temperature;
+    wire w_tick_us;
+    wire [7:0] w_humi_dec, w_temp_dec;
+    wire [3:0] w_hum_digit_1, w_hum_digit_10;
+    wire [3:0] w_temp_digit_1, w_temp_digit_10;
 
 
-    button_debounce U_DHT11_BTN_DB (
-        .clk  (clk),
-        .rst  (rst),
-        .i_btn(btnR),
-        .o_btn(w_btnR)
+    assign humi_bcd = {w_hum_digit_10, w_hum_digit_1};
+    assign temp_bcd = {w_temp_digit_10, w_temp_digit_1};
+
+    digit_splitter U_HUM_DIGIT_SPLIT (
+        .digit_in(w_humi_dec),
+        .digit_1 (w_hum_digit_1),
+        .digit_10(w_hum_digit_10)
+    );
+
+    digit_splitter U_TEMP_DIGIT_SPLIT (
+        .digit_in(w_temp_dec),
+        .digit_1 (w_temp_digit_1),
+        .digit_10(w_temp_digit_10)
     );
 
     tick_gen_us U_DHT11_TICK_GEN_US (
@@ -35,42 +37,41 @@ module dht11 (
         .tick_us(w_tick_us)
     );
 
+
     dht11_controller U_DHT11_CNTL (
         .clk        (clk),
         .rst        (rst),
-        .dht11_start(w_btnR),
+        .dht11_start(dht11_start),
         .tick_us    (w_tick_us),
-        .fnd_in_hum (w_fnd_in_hum),
-        .fnd_in_temp(w_fnd_in_temp),
-        .humidity   (),
-        .temperature(),
-        .valid      (led_valid),      // for check sum
+        .humidity   (w_humi_dec),
+        .temperature(w_temp_dec),
+        .valid      (led_valid),    // for check sum
         .dht11      (dht11)
     );
 
-    fnd_controller U_DHT11_FND_CNTL (
-        .clk(clk),
-        .rst(rst),
-        .fnd_in_hum(w_fnd_in_hum),
-        .fnd_in_temp(w_fnd_in_temp),
-        .fnd_com(fnd_com),
-        .fnd_data(fnd_data)
-    );
 
 
 endmodule
 
+module digit_splitter (
+    input  [7:0] digit_in,  //관련된 입력 14bit로
+    output [3:0] digit_1,
+    output [3:0] digit_10
+);
+    assign digit_1  = digit_in % 10;  // digit 1
+    assign digit_10 = (digit_in / 10) % 10;  // digit 10
+
+endmodule
+
 module dht11_controller (
-    input         clk,
-    input         rst,
-    input         dht11_start,
-    input         tick_us,
-    output [13:0] fnd_in_hum,
-    output [13:0] fnd_in_temp,
-    output [ 7:0] humidity,
-    output [ 7:0] temperature,
-    output        valid,        // for check sum
-    inout         dht11
+    input        clk,
+    input        rst,
+    input        dht11_start,
+    input        tick_us,
+    output [7:0] humidity,
+    output [7:0] temperature,
+    output       valid,        // for check sum
+    inout        dht11
 );
 
 
@@ -94,9 +95,6 @@ module dht11_controller (
 
     assign humidity = data_reg[39:32];
     assign temperature = data_reg[23:16];
-    assign fnd_in_hum = {5'b00000, data_reg[39:32]};
-    assign fnd_in_temp = {5'b00000, data_reg[23:16]};
-
 
 
     always @(posedge clk, posedge rst) begin
@@ -258,3 +256,6 @@ module tick_gen_us (
 
     end
 endmodule
+
+
+

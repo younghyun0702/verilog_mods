@@ -47,7 +47,9 @@ module uart_interface (
         .empty(w_rx_fifo_empty)
     );
 
-    fifo U_FUFO_TX (
+    fifo #(
+        .DEPTH(25)
+    ) U_FUFO_TX (
         .clk(clk),
         .rst(rst),
         .push_data(w_push_data),
