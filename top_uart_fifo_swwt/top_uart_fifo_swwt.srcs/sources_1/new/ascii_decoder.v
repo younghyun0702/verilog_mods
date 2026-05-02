@@ -1,17 +1,17 @@
 `timescale 1ns / 1ps
 
 module ascii_decoder (
-    input clk,
-    input rst,
-    input rx_fifo_empty,
-    input [7:0] btn_ascii_data,
-    output reg pop,
-    output reg btnC,
-    output reg btnR,
-    output reg btnL,
-    output reg btnU,
-    output reg btnD,
-    output reg btnS
+    input            clk,
+    input            rst,
+    input            rx_fifo_empty,
+    input      [7:0] btn_ascii_data,
+    output reg       pop,
+    output reg       btnC,
+    output reg       btnR,
+    output reg       btnL,
+    output reg       btnU,
+    output reg       btnD,
+    output reg       btnS
     // output btnC,
     // output btnC,
     // output btnC,

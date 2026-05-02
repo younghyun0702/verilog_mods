@@ -4,7 +4,7 @@ module ascii_sender (
     input        clk,
     input        rst,
     input        tx_fifo_full,
-    input        i_btnS,
+    input        send_start,
     input [ 1:0] sw,
     input [23:0] i_time_data,
     input [11:0] i_sensor_sr04,
@@ -56,13 +56,13 @@ module ascii_sender (
 
     parameter IDLE = 0, FULL = 1, DATA_PUSH = 2;
 
-    reg [7:0] setup_data_reg [0:20];
-    reg [7:0] setup_data_next[0:20];
+    reg [7:0] setup_data_reg [0:21];
+    reg [7:0] setup_data_next[0:21];
     reg [1:0] state_reg, state_next;
     reg [5:0] byte_count_reg, byte_count_next;
     reg [7:0] data_reg, data_next;
     reg push_reg, push_next;
-    reg [4:0] count_data;
+    reg [4:0] count_data_reg, count_data_next;
 
     assign push_data = data_reg;
     assign push = push_reg;
@@ -96,29 +96,29 @@ module ascii_sender (
             setup_data_next[0]  = CAP_D;
             setup_data_next[1]  = CAP_H;
             setup_data_next[2]  = CAP_T;
-            setup_data_next[10] = CR;
+            setup_data_next[3]  = CR;
 
 
-            setup_data_next[3]  = SMALL_T;
-            setup_data_next[4]  = SMALL_E;
-            setup_data_next[5]  = SMALL_M;
-            setup_data_next[6]  = SMALL_P;
-            setup_data_next[4]  = EQUALS;
-            setup_data_next[5]  = data[15:11] + 8'h30;
-            setup_data_next[6]  = data[11:8] + 8'h30;
-            setup_data_next[8]  = DEG;
-            setup_data_next[9]  = CAP_C;
-            setup_data_next[10] = CR;
+            setup_data_next[4]  = SMALL_T;
+            setup_data_next[5]  = SMALL_E;
+            setup_data_next[6]  = SMALL_M;
+            setup_data_next[7]  = SMALL_P;
+            setup_data_next[8]  = EQUALS;
+            setup_data_next[9]  = data[15:11] + 8'h30;
+            setup_data_next[10] = data[11:8] + 8'h30;
+            setup_data_next[11] = DEG;
+            setup_data_next[12] = CAP_C;
+            setup_data_next[13] = CR;
 
 
-            setup_data_next[3]  = SMALL_H;
-            setup_data_next[4]  = SMALL_U;
-            setup_data_next[5]  = SMALL_M;
-            setup_data_next[6]  = SMALL_I;
-            setup_data_next[4]  = EQUALS;
-            setup_data_next[5]  = data[7:4] + 8'h30;
-            setup_data_next[6]  = data[3:0] + 8'h30;
-            setup_data_next[10] = CR;
+            setup_data_next[14] = SMALL_H;
+            setup_data_next[15] = SMALL_U;
+            setup_data_next[16] = SMALL_M;
+            setup_data_next[17] = SMALL_I;
+            setup_data_next[18] = EQUALS;
+            setup_data_next[19] = data[7:4] + 8'h30;
+            setup_data_next[20] = data[3:0] + 8'h30;
+            setup_data_next[21] = CR;
 
         end
     endtask
@@ -166,7 +166,7 @@ module ascii_sender (
             setup_data_next[9]  = data[7:4] + 8'h30;
             setup_data_next[10] = data[3:0] + 8'h30;
             setup_data_next[11] = SMALL_S;
-            setup_data_next[10] = CR;
+            setup_data_next[12] = CR;
 
         end
     endtask
@@ -179,7 +179,8 @@ module ascii_sender (
             byte_count_reg <= 0;
             data_reg <= 0;
             push_reg <= 0;
-            for (i = 0; i < 16; i = i + 1) begin
+            count_data_reg <= 0;
+            for (i = 0; i < 22; i = i + 1) begin
                 setup_data_reg[i] <= 8'b0;
             end
         end else begin
@@ -187,7 +188,8 @@ module ascii_sender (
             byte_count_reg <= byte_count_next;
             data_reg <= data_next;
             push_reg <= push_next;
-            for (i = 0; i < 16; i = i + 1) begin
+            count_data_reg <= count_data_next;
+            for (i = 0; i < 22; i = i + 1) begin
                 setup_data_reg[i] <= setup_data_next[i];
             end
         end
@@ -199,26 +201,27 @@ module ascii_sender (
         push_next = push_reg;
         byte_count_next = byte_count_reg;
         data_next = data_reg;
-        for (j = 0; j < 16; j = j + 1) begin
+        count_data_next = count_data_reg;
+        for (j = 0; j < 22; j = j + 1) begin
             setup_data_next[j] = setup_data_reg[j];
         end
-        if (i_btnS) begin
+        if (send_start) begin
             case (sw)
                 2'b00: begin
                     data2ascii(i_time_data, sw);
-                    count_data = CNT_TIME;
+                    count_data_next = CNT_TIME;
                 end
                 2'b01: begin
                     data2ascii(i_time_data, sw);
-                    count_data = CNT_TIME;
+                    count_data_next = CNT_TIME;
                 end
                 2'b10: begin
                     sr042ascii(i_sensor_sr04);
-                    count_data = CNT_SR;  /*초음파*/
+                    count_data_next = CNT_SR;  /*초음파*/
                 end
                 2'b11: begin
                     dht2ascii(i_sensor_dht11);
-                    count_data = CNT_DHT;  /*온습도*/
+                    count_data_next = CNT_DHT;  /*온습도*/
                 end
 
             endcase
@@ -229,7 +232,7 @@ module ascii_sender (
             IDLE: begin
                 data_next = 0;
                 push_next = 0;
-                if (i_btnS && !tx_fifo_full) begin
+                if (send_start && !tx_fifo_full) begin
                     state_next = DATA_PUSH;
                     byte_count_next = 0;
                     push_next = 1;  //푸쉬 상태가 된 후에 바꿔야 할 수도 있음
@@ -240,18 +243,19 @@ module ascii_sender (
                 if (!tx_fifo_full) begin
                     byte_count_next = byte_count_reg + 1;
                     data_next = setup_data_reg[byte_count_reg];
-                    if (byte_count_reg == count_data) begin
+                    if (byte_count_reg == count_data_next) begin
                         state_next = IDLE;
                         push_next  = 0;
                     end
                 end else begin
-                    push_next = 0;
+                    state_next = FULL;
+                    push_next  = 0;
                 end
 
             end
             FULL: begin
                 push_next = 0;
-                if (tx_fifo_full) begin
+                if (!tx_fifo_full) begin
                     state_next = DATA_PUSH;
                     push_next  = 1;
                 end
