@@ -202,26 +202,28 @@ module ascii_sender (
         for (j = 0; j < 16; j = j + 1) begin
             setup_data_next[j] = setup_data_reg[j];
         end
+        if (i_btnS) begin
+            case (sw)
+                2'b00: begin
+                    data2ascii(i_time_data, sw);
+                    count_data = CNT_TIME;
+                end
+                2'b01: begin
+                    data2ascii(i_time_data, sw);
+                    count_data = CNT_TIME;
+                end
+                2'b10: begin
+                    sr042ascii(i_sensor_sr04);
+                    count_data = CNT_SR;  /*초음파*/
+                end
+                2'b11: begin
+                    dht2ascii(i_sensor_dht11);
+                    count_data = CNT_DHT;  /*온습도*/
+                end
 
-        case (sw)
-            2'b00: begin
-                data2ascii(i_time_data, sw);
-                count_data = CNT_TIME;
-            end
-            2'b01: begin
-                data2ascii(i_time_data, sw);
-                count_data = CNT_TIME;
-            end
-            2'b10: begin
-                sr042ascii(i_sensor_sr04);
-                count_data = CNT_SR;  /*초음파*/
-            end
-            2'b11: begin
-                dht2ascii(i_sensor_dht11);
-                count_data = CNT_DHT;  /*온습도*/
-            end
+            endcase
+        end
 
-        endcase
 
         case (state_reg)
             IDLE: begin
