@@ -39,7 +39,7 @@ module tb_fifo_ascii_sender ();
         .rst(rst),
         .push_data(w_push_data),
         .push(w_push),
-        .pop(empty),
+        .pop(~empty),
         .pop_data(pop_data),
         .full(w_full),
         .empty(empty)
@@ -77,7 +77,7 @@ dht
         dht_data  = 16'h2740;
         @(posedge clk);
         @(posedge clk);
-        @(posedge clk);
+        @(negedge clk);
 
         // 스타트 디바운싱 입력
         btnS = 1;

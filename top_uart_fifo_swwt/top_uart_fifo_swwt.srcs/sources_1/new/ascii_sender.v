@@ -250,8 +250,7 @@ module ascii_sender (
 
             end
             FULL: begin
-                state_next = state_reg;
-                push_next  = 0;
+                push_next = 0;
                 if (i_tx_full) begin
                     state_next = DATA_PUSH;
                     push_next  = 1;
