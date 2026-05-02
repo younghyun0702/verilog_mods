@@ -3,7 +3,7 @@
 module ascii_sender (
     input        clk,
     input        rst,
-    input        i_tx_full,
+    input        tx_fifo_full,
     input        i_btnS,
     input [ 1:0] sw,
     input [23:0] i_time_data,
@@ -229,7 +229,7 @@ module ascii_sender (
             IDLE: begin
                 data_next = 0;
                 push_next = 0;
-                if (i_btnS && !i_tx_full) begin
+                if (i_btnS && !tx_fifo_full) begin
                     state_next = DATA_PUSH;
                     byte_count_next = 0;
                     push_next = 1;  //푸쉬 상태가 된 후에 바꿔야 할 수도 있음
@@ -237,7 +237,7 @@ module ascii_sender (
                 end
             end
             DATA_PUSH: begin
-                if (!i_tx_full) begin
+                if (!tx_fifo_full) begin
                     byte_count_next = byte_count_reg + 1;
                     data_next = setup_data_reg[byte_count_reg];
                     if (byte_count_reg == count_data) begin
@@ -251,7 +251,7 @@ module ascii_sender (
             end
             FULL: begin
                 push_next = 0;
-                if (i_tx_full) begin
+                if (tx_fifo_full) begin
                     state_next = DATA_PUSH;
                     push_next  = 1;
                 end
