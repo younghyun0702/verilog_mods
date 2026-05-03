@@ -20,13 +20,13 @@ module dht11_sensor (
     assign humi_bcd = {w_hum_digit_10, w_hum_digit_1};
     assign temp_bcd = {w_temp_digit_10, w_temp_digit_1};
 
-    digit_splitter U_HUM_DIGIT_SPLIT (
+    dht11_digit_splitter U_HUM_DIGIT_SPLIT (
         .digit_in(w_humi_dec),
         .digit_1 (w_hum_digit_1),
         .digit_10(w_hum_digit_10)
     );
 
-    digit_splitter U_TEMP_DIGIT_SPLIT (
+    dht11_digit_splitter U_TEMP_DIGIT_SPLIT (
         .digit_in(w_temp_dec),
         .digit_1 (w_temp_digit_1),
         .digit_10(w_temp_digit_10)
@@ -55,7 +55,7 @@ module dht11_sensor (
 
 endmodule
 
-module digit_splitter (
+module dht11_digit_splitter (
     input  [7:0] digit_in,  //관련된 입력 14bit로
     output [3:0] digit_1,
     output [3:0] digit_10

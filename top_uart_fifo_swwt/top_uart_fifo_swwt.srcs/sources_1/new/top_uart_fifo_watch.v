@@ -98,6 +98,8 @@ module top_uart_fifo_watch #(
         .rst(rst),
         .sr04_start(senser_starter),
         .echo(echo),
+        .i_sw({sw1, sw0}),
+
         .trig(trig),
         .distance(),
         .sr04_bcd(w_sr04_data)

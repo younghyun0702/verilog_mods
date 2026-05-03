@@ -2,15 +2,15 @@
 
 
 module timer_fsm (
-    input      clk,
-    input      rst,
-    input      i_btnD,
-    input      i_btnL,
-    input      i_btnU,
-    input      i_sw,
-    output reg o_runstop,
-    output reg o_clear,
-    output     o_updown
+    input            clk,
+    input            rst,
+    input            i_btnD,
+    input            i_btnL,
+    input            i_btnU,
+    input      [1:0] i_sw,
+    output reg       o_runstop,
+    output reg       o_clear,
+    output           o_updown
 );
 
     localparam [1:0] STOP = 2'b00;

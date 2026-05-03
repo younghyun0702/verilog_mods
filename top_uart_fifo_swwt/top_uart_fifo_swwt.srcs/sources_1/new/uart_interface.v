@@ -6,7 +6,7 @@ module uart_interface (
     input         rx,
     input  [ 1:0] sw,
     input         send_start,
-    input  [15:0] time_data,
+    input  [23:0] time_data,
     input  [11:0] sr04_data,
     input  [15:0] dht_data,
     output        tx,

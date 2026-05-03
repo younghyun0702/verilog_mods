@@ -15,12 +15,12 @@ module timer_unit #(
     parameter MIN_TIMES  = 60,
     parameter HOUR_TIMES = 24
 ) (
-    input clk,
-    input rst,
-    input i_btnD,
-    input i_btnL,
-    input i_btnU,
-    input [1:0] i_sw,
+    input                     clk,
+    input                     rst,
+    input                     i_btnD,
+    input                     i_btnL,
+    input                     i_btnU,
+    input  [             1:0] i_sw,
     output [MSEC_WIDTH  -1:0] msec,
     output [SEC_WIDTH   -1:0] sec,
     output [MIN_WIDTH   -1:0] min,

@@ -117,7 +117,7 @@ module timepiecer #(
     common_control U_COMMON_CONTROL (
         .clk(clk),
         .rst(rst),
-        .i_sw({W_SW1, w_sw0}),
+        .i_sw({w_sw1, w_sw0}),
         .i_btnR(w_btnR),
         .o_display_mode(w_display_mode)
     );
@@ -371,7 +371,7 @@ module display_unit #(
     input [15:0] i_dht_bcd_data,
     output [3:0] fnd_com,
     output [7:0] fnd_data,
-    output [15:0] o_time_bcd_data,
+    output [23:0] o_time_bcd_data,
     output o_led_12_hour,
     output o_led_timer
 );
@@ -380,7 +380,7 @@ module display_unit #(
 
     wire [11:0] w_sr04_bcd_data;
     wire [15:0] w_dht_bcd_data;
-    wire [15:0] w_time_bcd_data;
+    wire [23:0] w_time_bcd_data;
     wire [MSEC_WIDTH-1:0] w_display_msec;
     wire [SEC_WIDTH-1:0] w_display_sec;
     wire [MIN_WIDTH-1:0] w_display_min;
@@ -426,7 +426,7 @@ module display_unit #(
         .rst(rst),
         .i_sw(i_sw),
         .i_display_mode(i_display_mode),
-        .i_show_center_dot({w_sw1, w_sw0}),
+        .i_show_center_dot(i_sw),
         .i_set_index(w_fnd_set_index),
         .msec(w_display_msec),
         .sec(w_display_sec),
