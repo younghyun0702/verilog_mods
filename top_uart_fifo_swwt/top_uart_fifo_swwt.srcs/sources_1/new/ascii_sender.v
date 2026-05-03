@@ -216,12 +216,12 @@ module ascii_sender (
                     count_data_next = CNT_TIME;
                 end
                 2'b10: begin
-                    sr042ascii(i_sensor_sr04);
-                    count_data_next = CNT_SR;  /*초음파*/
-                end
-                2'b11: begin
                     dht2ascii(i_sensor_dht11);
                     count_data_next = CNT_DHT;  /*온습도*/
+                end
+                2'b11: begin
+                    sr042ascii(i_sensor_sr04);
+                    count_data_next = CNT_SR;  /*초음파*/
                 end
 
             endcase

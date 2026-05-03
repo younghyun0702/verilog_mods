@@ -5,6 +5,7 @@ module top_sr04_controller (
     input         clk,
     input         rst,
     input         sr04_start,
+    input  [ 1:0] i_sw,
     input         echo,
     output        trig,
     output [ 8:0] distance,
@@ -32,6 +33,7 @@ module top_sr04_controller (
         .clk(clk),
         .rst(rst),
         .sr04_start(sr04_start),
+        .i_sw(i_sw),
         .tick_58us(w_tick_58us),
         .echo(echo),
         .trig(trig),
@@ -41,7 +43,7 @@ module top_sr04_controller (
     );
 
 
-    tick_gen_us U_TICK (
+    tick_gen_58us U_TICK (
         .clk(clk),
         .rst(rst),
         .tick_58us(w_tick_58us)
@@ -65,9 +67,11 @@ endmodule
 
 
 module sr04_controller (
-    input            clk,
-    input            rst,
-    input            sr04_start,
+    input       clk,
+    input       rst,
+    input       sr04_start,
+    input [1:0] i_sw,
+
     input            tick_58us,
     input            echo,
     output reg       trig,
@@ -107,7 +111,7 @@ module sr04_controller (
         case (sr_state_reg)
             IDLE: begin
                 trig = 0;
-                if (sr04_start) begin
+                if (i_sw[1] && sr04_start) begin
                     sr_state_next = START;
                     distance_next = 0;
                 end
@@ -150,7 +154,7 @@ endmodule
 
 
 
-module tick_gen_us (
+module tick_gen_58us (
     input clk,
     input rst,
     output reg tick_58us

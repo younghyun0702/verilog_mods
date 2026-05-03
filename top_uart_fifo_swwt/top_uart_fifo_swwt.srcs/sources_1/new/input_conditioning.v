@@ -14,6 +14,12 @@ module input_conditioning #(
     input  btnD,
     input  btnL,
     input  btnR,
+    input  com_btnC,
+    input  com_btnR,
+    input  com_btnL,
+    input  com_btnU,
+    input  com_btnD,
+    input  com_btnS,
     input  sw0,
     input  sw1,
     input  sw15,
@@ -21,6 +27,8 @@ module input_conditioning #(
     output o_btnD,
     output o_btnL,
     output o_btnR,
+    output o_btnC,
+    output o_btnS,
     output o_btnU_hold,
     output o_btnD_hold,
     output o_btnL_hold,
@@ -29,6 +37,21 @@ module input_conditioning #(
     output o_sw1,
     output o_sw15
 );
+
+
+    wire w_btnU;
+    wire w_btnD;
+    wire w_btnL;
+    wire w_btnR;
+
+    assign o_btnU = w_btnU | com_btnU;
+    assign o_btnD = w_btnD | com_btnD;
+    assign o_btnL = w_btnL | com_btnL;
+    assign o_btnR = w_btnR | com_btnR;
+    assign o_btnS = com_btnS;
+    assign o_btnC = com_btnC;
+
+
 
     assign o_sw0  = sw0;
     assign o_sw1  = sw1;
@@ -44,7 +67,7 @@ module input_conditioning #(
         .clk(clk),
         .rst(rst),
         .i_btn(btnU),
-        .o_btn(o_btnU),
+        .o_btn(w_btnU),
         .o_btn_hold(o_btnU_hold)
     );
 
@@ -58,7 +81,7 @@ module input_conditioning #(
         .clk(clk),
         .rst(rst),
         .i_btn(btnD),
-        .o_btn(o_btnD),
+        .o_btn(w_btnD),
         .o_btn_hold(o_btnD_hold)
     );
 
@@ -70,7 +93,7 @@ module input_conditioning #(
         .clk(clk),
         .rst(rst),
         .i_btn(btnL),
-        .o_btn(o_btnL),
+        .o_btn(w_btnL),
         .o_btn_hold(o_btnL_hold)
     );
 
@@ -82,7 +105,7 @@ module input_conditioning #(
         .clk(clk),
         .rst(rst),
         .i_btn(btnR),
-        .o_btn(o_btnR),
+        .o_btn(w_btnR),
         .o_btn_hold(o_btnR_hold)
     );
 

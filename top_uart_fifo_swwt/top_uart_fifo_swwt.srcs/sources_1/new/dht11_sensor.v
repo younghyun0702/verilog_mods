@@ -4,6 +4,7 @@ module dht11_sensor (
     input clk,
     input rst,
     input dht11_start,
+    input [1:0] i_sw,
     output [7:0] humi_bcd,
     output [7:0] temp_bcd,
     output led_valid,
@@ -42,6 +43,7 @@ module dht11_sensor (
         .clk        (clk),
         .rst        (rst),
         .dht11_start(dht11_start),
+        .i_sw       (i_sw),
         .tick_us    (w_tick_us),
         .humidity   (w_humi_dec),
         .temperature(w_temp_dec),
@@ -67,6 +69,7 @@ module dht11_controller (
     input        clk,
     input        rst,
     input        dht11_start,
+    input  [1:0] i_sw,
     input        tick_us,
     output [7:0] humidity,
     output [7:0] temperature,
@@ -127,7 +130,7 @@ module dht11_controller (
             IDLE: begin
                 dht11_next   = 1'b1;
                 out_sel_next = 1'b1;
-                if (dht11_start) begin
+                if (i_sw[1] && dht11_start) begin
                     tick_cnt_next = 0;
                     bit_cnt_next = 0;
                     n_state = START;

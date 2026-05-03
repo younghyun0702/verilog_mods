@@ -102,7 +102,7 @@ module timepiece_fsm (
         set_index_next = set_index_reg;
 
         // sw0가 Timer를 선택하면 Timepiece 설정 상태는 유지하지 않고 VIEW로 복귀
-        if (i_sw == 2'b00) begin
+        if (i_sw != 2'b00) begin
             next_state = VIEW;
             set_index_next = default_unit_for_display(i_display_mode);
         end else begin

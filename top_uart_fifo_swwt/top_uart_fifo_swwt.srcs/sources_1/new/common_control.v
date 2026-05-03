@@ -12,7 +12,8 @@ module common_control (
         if (rst) begin  // reset이면 timepiece=HH:MM, timer=SS:MS 기본값으로 초기화
             o_display_mode <= ~i_sw[0];
         end else if (i_btnR) begin  // btnR short가 들어오면 HH:MM <-> SS:MS 토글
-            o_display_mode <= ~o_display_mode;
+            if (i_sw == 2'b11) o_display_mode <= 0;
+            else o_display_mode <= ~o_display_mode;
         end
     end
 

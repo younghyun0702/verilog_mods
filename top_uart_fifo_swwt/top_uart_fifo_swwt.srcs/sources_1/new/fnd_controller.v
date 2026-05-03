@@ -11,6 +11,7 @@ module fnd_controller #(
 ) (
     input clk,
     input rst,
+    input [1:0] i_sw,
     input i_display_mode,  // sw[0] , 0 : msec_sec, 1 : mon_hour
     input [1:0] i_show_center_dot,
     input [2:0] i_set_index,  // setting index
@@ -20,12 +21,13 @@ module fnd_controller #(
     input [HOUR_WIDTH  -1:0] hour,
     input [11:0] i_sr04_bcd_data,
     input [15:0] i_dht_bcd_data,
-    output [15:0] o_time_bcd_data,
+    output [23:0] o_time_bcd_data,
     output [3:0] fnd_com,
     output [7:0] fnd_data
 );
 
     //센서값 디스플래이 추가해야함
+    wire [3:0] w_choice_data[7:0];
 
     wire [3:0] w_out_mux;
     wire [3:0] w_out_mux_msec_sec;
@@ -135,10 +137,10 @@ module fnd_controller #(
     );
 
     mux_8x1 U_MUX_MSEC_SEC (
-        .in0(w_msec_digit_1_disp),  // digit 1
-        .in1(w_msec_digit_10_disp),  // digit 10
-        .in2(w_sec_digit_1_disp),  // digit 100
-        .in3(w_sec_digit_10_disp),  // digit 1000
+        .in0(w_choice_data[0]),  // digit 1
+        .in1(w_choice_data[1]),  // digit 10
+        .in2(w_choice_data[2]),  // digit 100
+        .in3(w_choice_data[3]),  // digit 1000
         .in4(4'hf),  // right-end dot는 사용하지 않음
         .in5(4'hf),  // digit 10
         .in6    ((i_show_center_dot==2'b00) ? 4'he : 4'hf), // 가운데 점은 timepiece에서만 켬
@@ -148,16 +150,75 @@ module fnd_controller #(
     );
 
     mux_8x1 U_MUX_MIN_HOUR (
-        .in0(w_min_digit_1_disp),  // digit 1
-        .in1(w_min_digit_10_disp),  // digit 10
-        .in2(w_hour_digit_1_disp),  // digit 100
-        .in3(w_hour_digit_10_disp),  // digit 1000
+        .in0(w_choice_data[4]),  // digit 1
+        .in1(w_choice_data[5]),  // digit 10
+        .in2(w_choice_data[6]),  // digit 100
+        .in3(w_choice_data[7]),  // digit 1000
         .in4(4'hf),  // right-end dot는 사용하지 않음
         .in5(4'hf),
         .in6    ((i_show_center_dot==2'b00) ? 4'he : 4'hf), // 가운데 점은 timepiece에서만 켬
         .in7(4'hf),
         .sel(w_digit_sel),  // to select input
         .out_mux(w_out_mux_min_hour)
+    );
+
+    mux_3x1 U_MUX_TISEN_0_0 (
+        .in0(w_msec_digit_1_disp),  // TIM3
+        .in1(i_dht_bcd_data[3:0]),  // DHT
+        .in2(i_sr04_bcd_data[3:0]),  // SR04
+        .sel(i_sw),
+        .out_mux(w_choice_data[0])
+    );
+    mux_3x1 U_MUX_TISEN_0_1 (
+        .in0(w_msec_digit_10_disp),
+        .in1(i_dht_bcd_data[7:4]),
+        .in2(i_sr04_bcd_data[7:4]),
+        .sel(i_sw),
+        .out_mux(w_choice_data[1])
+    );
+
+    mux_3x1 U_MUX_TISEN_0_2 (
+        .in0(w_sec_digit_1_disp),
+        .in1(4'h0),
+        .in2(i_sr04_bcd_data[11:8]),
+        .sel(i_sw),
+        .out_mux(w_choice_data[2])
+    );
+
+    mux_3x1 U_MUX_TISEN_0_3 (
+        .in0(w_sec_digit_10_disp),
+        .in1(4'h0),
+        .in2(4'h0),  //0입력
+        .sel(i_sw),
+        .out_mux(w_choice_data[3])
+    );
+    mux_3x1 U_MUX_TISEN_1_0 (
+        .in0(w_min_digit_1_disp),
+        .in1(i_dht_bcd_data[11:8]),
+        .in2(4'h0),
+        .sel(i_sw),
+        .out_mux(w_choice_data[4])
+    );
+    mux_3x1 U_MUX_TISEN_1_1 (
+        .in0(w_min_digit_10_disp),
+        .in1(i_dht_bcd_data[15:12]),
+        .in2(4'h0),
+        .sel(i_sw),
+        .out_mux(w_choice_data[5])
+    );
+    mux_3x1 U_MUX_TISEN_1_2 (
+        .in0(w_hour_digit_1_disp),
+        .in1(4'h0),
+        .in2(4'h0),
+        .sel(i_sw),
+        .out_mux(w_choice_data[6])
+    );
+    mux_3x1 U_MUX_TISEN_1_3 (
+        .in0(w_hour_digit_10_disp),
+        .in1(4'h0),
+        .in2(4'h0),
+        .sel(i_sw),
+        .out_mux(w_choice_data[7])
     );
 
     mux_2x1 U_MUX_2X1 (
@@ -231,23 +292,6 @@ module clk_div_1khz #(
     end
 
 endmodule
-
-
-module digit_splitter (
-    input  [13:0] digit_in,   //관련된 입력 14bit로
-    output [ 3:0] digit_1,
-    output [ 3:0] digit_10,
-    output [ 3:0] digit_100,
-    output [ 3:0] digit_1000
-);
-    assign digit_1 = digit_in % 10;  // digit 1
-    assign digit_10 = (digit_in / 10) % 10;  // digit 10
-    assign digit_100 = (digit_in / 100) % 10;  // digit 100
-    assign digit_1000 = (digit_in / 1000) % 10;  // digit 1000
-
-
-endmodule
-
 
 
 module counter_8 (
@@ -359,6 +403,26 @@ module mux_8x1 (
     end
 endmodule
 
+module mux_3x1 (
+    input [3:0] in0,  // digit 1
+    input [3:0] in1,  // digit 10
+    input [3:0] in2,  // digit 100
+    input [1:0] sel,  // to select input
+    output [3:0] out_mux
+);
+    reg [3:0] out_reg;
+    assign out_mux = out_reg;
+
+    // mux, (*) all input : sensitivity list
+    always @(*  /*in0, in1, in2, in3, sel*/) begin
+        case (sel)
+            2'b00, 2'b01: out_reg = in0;
+            2'b10: out_reg = in1;
+            2'b11: out_reg = in2;
+            default: out_reg = 4'b0000;
+        endcase
+    end
+endmodule
 
 module bcd (
     input [3:0] bin,

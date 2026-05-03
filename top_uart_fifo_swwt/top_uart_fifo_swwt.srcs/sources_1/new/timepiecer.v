@@ -24,18 +24,24 @@ module timepiecer #(
     input         btnL,
     input         btnU,
     input         btnD,
+    input         com_btnC,
+    input         com_btnR,
+    input         com_btnL,
+    input         com_btnU,
+    input         com_btnD,
+    input         com_btnS,
     input         sw0,
     input         sw1,
     input         sw15,
     input  [11:0] i_sr04_bcd_data,
     input  [15:0] i_dht_bcd_data,
-    output [15:0] o_time_bcd_data,
+    output [23:0] o_time_bcd_data,
+    output [ 3:0] fnd_com,
+    output [ 7:0] fnd_data,
+    output [ 1:0] led
 
-    output [3:0] fnd_com,
-    output [7:0] fnd_data,
-    output [1:0] led
 );
-// 키보드 입력 추가해야함
+    // 키보드 입력 추가해야함
 
     wire w_btnU;
     wire w_btnD;
@@ -51,7 +57,7 @@ module timepiecer #(
 
     wire [11:0] w_sr04_bcd_data;
     wire [15:0] w_dht_bcd_data;
-    wire [15:0] w_time_bcd_data;
+    wire [23:0] w_time_bcd_data;
 
 
     wire [MSEC_WIDTH-1:0] w_timer_msec;
@@ -66,6 +72,8 @@ module timepiecer #(
     wire w_display_mode;
     wire w_led_12_hour;
     wire w_led_timer;
+
+
 
     // 버튼 입력은 debouncer를 거쳐 short/hold 이벤트로 정리함.
     input_conditioning #(
@@ -82,6 +90,12 @@ module timepiecer #(
         .btnD(btnD),
         .btnL(btnL),
         .btnR(btnR),
+        .com_btnC(com_btnC),
+        .com_btnR(com_btnR),
+        .com_btnL(com_btnL),
+        .com_btnU(com_btnU),
+        .com_btnD(com_btnD),
+        .com_btnS(com_btnS),
         .sw0(sw0),
         .sw1(sw1),
         .sw15(sw15),
@@ -103,7 +117,7 @@ module timepiecer #(
     common_control U_COMMON_CONTROL (
         .clk(clk),
         .rst(rst),
-        .i_sw0(w_sw0),
+        .i_sw({W_SW1, w_sw0}),
         .i_btnR(w_btnR),
         .o_display_mode(w_display_mode)
     );
@@ -180,9 +194,9 @@ module timepiecer #(
         .i_timer_min(w_timer_min),
         .i_timer_hour(w_timer_hour),
         .i_timepiece_set_time(w_timepiece_set_time),
-        .i_sr04_bcd_data(w_sr04_bcd_data),  // 채워 넣기
-        .i_dht_bcd_data(w_dht_bcd_data),
-        .o_time_bcd_data(w_time_bcd_data),
+        .i_sr04_bcd_data(i_sr04_bcd_data),  // 채워 넣기
+        .i_dht_bcd_data(i_dht_bcd_data),
+        .o_time_bcd_data(o_time_bcd_data),
         .fnd_com(fnd_com),
         .fnd_data(fnd_data),
         .o_led_12_hour(w_led_12_hour),
@@ -374,6 +388,7 @@ module display_unit #(
     wire [2:0] w_fnd_set_index;
 
     assign w_fnd_set_index = ((i_sw == 2'b00) && i_timepiece_set_mode) ? {1'b0, i_timepiece_set_index} : FND_INDEX_OFF;
+    assign o_time_bcd_data = w_time_bcd_data;
 
     display_select_logic #(
         .MSEC_WIDTH(MSEC_WIDTH),
@@ -389,7 +404,7 @@ module display_unit #(
         .i_timepiece_sec(i_timepiece_set_time[12:7]),
         .i_timepiece_min(i_timepiece_set_time[18:13]),
         .i_timepiece_hour(i_timepiece_set_time[23:19]),
-        .i_sw({w_sw1, w_sw0}),
+        .i_sw(i_sw),
         .i_sw15(i_sw15),
         .o_display_msec(w_display_msec),
         .o_display_sec(w_display_sec),
@@ -409,6 +424,7 @@ module display_unit #(
     ) U_FND_CONTROLLER (
         .clk(clk),
         .rst(rst),
+        .i_sw(i_sw),
         .i_display_mode(i_display_mode),
         .i_show_center_dot({w_sw1, w_sw0}),
         .i_set_index(w_fnd_set_index),
@@ -416,8 +432,8 @@ module display_unit #(
         .sec(w_display_sec),
         .min(w_display_min),
         .hour(w_display_hour),
-        .i_sr04_bcd_data(w_sr04_bcd_data),  // 채워 넣기
-        .i_dht_bcd_data(w_dht_bcd_data),
+        .i_sr04_bcd_data(i_sr04_bcd_data),  // 채워 넣기
+        .i_dht_bcd_data(i_dht_bcd_data),
         .o_time_bcd_data(w_time_bcd_data),
         .fnd_com(fnd_com),
         .fnd_data(fnd_data)
