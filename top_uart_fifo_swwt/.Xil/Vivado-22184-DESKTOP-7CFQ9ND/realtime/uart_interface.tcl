@@ -16,7 +16,7 @@ set rt::rc [catch {
     set rt::cmdEcho 0
     rt::set_parameter writeXmsg true
     rt::set_parameter enableParallelHelperSpawn true
-    set ::env(RT_TMP) "C:/Users/kccistc/Desktop/young/OD_AL_CLASS/verilog_mods/top_uart_fifo_swwt/.Xil/Vivado-5024-DESKTOP-7CFQ9ND/realtime/tmp"
+    set ::env(RT_TMP) "C:/Users/kccistc/Desktop/young/OD_AL_CLASS/verilog_mods/top_uart_fifo_swwt/.Xil/Vivado-22184-DESKTOP-7CFQ9ND/realtime/tmp"
     if { [ info exists ::env(RT_TMP) ] } {
       file delete -force $::env(RT_TMP)
       file mkdir $::env(RT_TMP)
@@ -37,29 +37,14 @@ set rt::rc [catch {
       rt::read_verilog {
       C:/Users/kccistc/Desktop/young/OD_AL_CLASS/verilog_mods/top_uart_fifo_swwt/top_uart_fifo_swwt.srcs/sources_1/new/ascii_decoder.v
       C:/Users/kccistc/Desktop/young/OD_AL_CLASS/verilog_mods/top_uart_fifo_swwt/top_uart_fifo_swwt.srcs/sources_1/new/ascii_sender.v
-      C:/Users/kccistc/Desktop/young/OD_AL_CLASS/verilog_mods/top_uart_fifo_swwt/top_uart_fifo_swwt.srcs/sources_1/new/common_control.v
-      C:/Users/kccistc/Desktop/young/OD_AL_CLASS/verilog_mods/top_uart_fifo_swwt/top_uart_fifo_swwt.srcs/sources_1/new/debouncer.v
-      C:/Users/kccistc/Desktop/young/OD_AL_CLASS/verilog_mods/top_uart_fifo_swwt/top_uart_fifo_swwt.srcs/sources_1/new/dht11_sensor.v
-      C:/Users/kccistc/Desktop/young/OD_AL_CLASS/verilog_mods/top_uart_fifo_swwt/top_uart_fifo_swwt.srcs/sources_1/new/display_select.v
       C:/Users/kccistc/Desktop/young/OD_AL_CLASS/verilog_mods/top_uart_fifo_swwt/top_uart_fifo_swwt.srcs/sources_1/new/fifo.v
-      C:/Users/kccistc/Desktop/young/OD_AL_CLASS/verilog_mods/top_uart_fifo_swwt/top_uart_fifo_swwt.srcs/sources_1/new/fnd_controller.v
-      C:/Users/kccistc/Desktop/young/OD_AL_CLASS/verilog_mods/top_uart_fifo_swwt/top_uart_fifo_swwt.srcs/sources_1/new/input_conditioning.v
-      C:/Users/kccistc/Desktop/young/OD_AL_CLASS/verilog_mods/top_uart_fifo_swwt/top_uart_fifo_swwt.srcs/sources_1/new/sr04_sensor.v
-      C:/Users/kccistc/Desktop/young/OD_AL_CLASS/verilog_mods/top_uart_fifo_swwt/top_uart_fifo_swwt.srcs/sources_1/new/time_set_module.v
-      C:/Users/kccistc/Desktop/young/OD_AL_CLASS/verilog_mods/top_uart_fifo_swwt/top_uart_fifo_swwt.srcs/sources_1/new/timepiece_datapath.v
-      C:/Users/kccistc/Desktop/young/OD_AL_CLASS/verilog_mods/top_uart_fifo_swwt/top_uart_fifo_swwt.srcs/sources_1/new/timepiece_fsm.v
-      C:/Users/kccistc/Desktop/young/OD_AL_CLASS/verilog_mods/top_uart_fifo_swwt/top_uart_fifo_swwt.srcs/sources_1/new/timepiecer.v
-      C:/Users/kccistc/Desktop/young/OD_AL_CLASS/verilog_mods/top_uart_fifo_swwt/top_uart_fifo_swwt.srcs/sources_1/new/timer_datapath.v
-      C:/Users/kccistc/Desktop/young/OD_AL_CLASS/verilog_mods/top_uart_fifo_swwt/top_uart_fifo_swwt.srcs/sources_1/new/timer_fsm.v
-      C:/Users/kccistc/Desktop/young/OD_AL_CLASS/verilog_mods/top_uart_fifo_swwt/top_uart_fifo_swwt.srcs/sources_1/new/timer_unit.v
       C:/Users/kccistc/Desktop/young/OD_AL_CLASS/verilog_mods/top_uart_fifo_swwt/top_uart_fifo_swwt.srcs/sources_1/new/uart.v
       C:/Users/kccistc/Desktop/young/OD_AL_CLASS/verilog_mods/top_uart_fifo_swwt/top_uart_fifo_swwt.srcs/sources_1/new/uart_interface.v
-      C:/Users/kccistc/Desktop/young/OD_AL_CLASS/verilog_mods/top_uart_fifo_swwt/top_uart_fifo_swwt.srcs/sources_1/new/top_uart_fifo_watch.v
     }
       rt::filesetChecksum
     }
     rt::set_parameter usePostFindUniquification false
-    set rt::top top_uart_fifo_watch
+    set rt::top uart_interface
     rt::set_parameter enableIncremental true
     rt::set_parameter markDebugPreservationLevel "enable"
     set rt::reportTiming false
@@ -75,7 +60,7 @@ set rt::rc [catch {
     rt::set_parameter webTalkPath {}
     rt::set_parameter synthDebugLog false
     rt::set_parameter printModuleName false
-    rt::set_parameter enableSplitFlowPath "C:/Users/kccistc/Desktop/young/OD_AL_CLASS/verilog_mods/top_uart_fifo_swwt/.Xil/Vivado-5024-DESKTOP-7CFQ9ND/"
+    rt::set_parameter enableSplitFlowPath "C:/Users/kccistc/Desktop/young/OD_AL_CLASS/verilog_mods/top_uart_fifo_swwt/.Xil/Vivado-22184-DESKTOP-7CFQ9ND/"
     set ok_to_delete_rt_tmp true 
     if { [rt::get_parameter parallelDebug] } { 
        set ok_to_delete_rt_tmp false 

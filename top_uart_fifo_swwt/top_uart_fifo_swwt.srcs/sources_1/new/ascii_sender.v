@@ -16,7 +16,7 @@ module ascii_sender (
 
     parameter CNT_TIME = 12;
     parameter CNT_SR = 10;
-    parameter CNT_DHT = 21;
+    parameter CNT_DHT = 22;
 
     parameter ZERO = 8'h30;
     parameter ONE = 8'h31;
@@ -32,7 +32,7 @@ module ascii_sender (
     parameter COLON = 8'h3A;  // :
     parameter EQUALS = 8'h3D;  // =
     parameter CR = 8'h0D;  // \n
-    parameter DEG = 8'hB0;  // '
+    parameter DEG = 8'h27;  // '
 
 
     parameter CAP_C = 8'h43;
@@ -56,8 +56,8 @@ module ascii_sender (
 
     parameter IDLE = 0, FULL = 1, DATA_PUSH = 2;
 
-    reg [7:0] setup_data_reg [0:21];
-    reg [7:0] setup_data_next[0:21];
+    reg [7:0] setup_data_reg [0:22];
+    reg [7:0] setup_data_next[0:22];
     reg [1:0] state_reg, state_next;
     reg [5:0] byte_count_reg, byte_count_next;
     reg [7:0] data_reg, data_next;
@@ -104,7 +104,7 @@ module ascii_sender (
             setup_data_next[6]  = SMALL_M;
             setup_data_next[7]  = SMALL_P;
             setup_data_next[8]  = EQUALS;
-            setup_data_next[9]  = data[15:11] + 8'h30;
+            setup_data_next[9]  = data[15:12] + 8'h30;
             setup_data_next[10] = data[11:8] + 8'h30;
             setup_data_next[11] = DEG;
             setup_data_next[12] = CAP_C;
@@ -118,7 +118,8 @@ module ascii_sender (
             setup_data_next[18] = EQUALS;
             setup_data_next[19] = data[7:4] + 8'h30;
             setup_data_next[20] = data[3:0] + 8'h30;
-            setup_data_next[21] = CR;
+            setup_data_next[21] = 8'h25;
+            setup_data_next[22] = CR;
 
         end
     endtask
@@ -180,7 +181,7 @@ module ascii_sender (
             data_reg <= 0;
             push_reg <= 0;
             count_data_reg <= 0;
-            for (i = 0; i < 22; i = i + 1) begin
+            for (i = 0; i < 23; i = i + 1) begin
                 setup_data_reg[i] <= 8'b0;
             end
         end else begin
@@ -189,7 +190,7 @@ module ascii_sender (
             data_reg <= data_next;
             push_reg <= push_next;
             count_data_reg <= count_data_next;
-            for (i = 0; i < 22; i = i + 1) begin
+            for (i = 0; i < 23; i = i + 1) begin
                 setup_data_reg[i] <= setup_data_next[i];
             end
         end
@@ -202,7 +203,7 @@ module ascii_sender (
         byte_count_next = byte_count_reg;
         data_next = data_reg;
         count_data_next = count_data_reg;
-        for (j = 0; j < 22; j = j + 1) begin
+        for (j = 0; j < 23; j = j + 1) begin
             setup_data_next[j] = setup_data_reg[j];
         end
         if (send_start) begin
@@ -239,7 +240,7 @@ module ascii_sender (
                 end
             end
             DATA_PUSH: begin
-                push_next = 1;  //푸쉬 상태가 된 후에 바꿔야 할 수도 있음
+                push_next = 1;
                 if (!tx_fifo_full) begin
                     byte_count_next = byte_count_reg + 1;
                     data_next = setup_data_reg[byte_count_reg];

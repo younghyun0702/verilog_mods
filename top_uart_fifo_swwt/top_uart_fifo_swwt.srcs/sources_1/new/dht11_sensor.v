@@ -69,7 +69,6 @@ module dht11_controller (
     input        clk,
     input        rst,
     input        dht11_start,
-    input  [1:0] i_sw,
     input        tick_us,
     output [7:0] humidity,
     output [7:0] temperature,
@@ -130,7 +129,7 @@ module dht11_controller (
             IDLE: begin
                 dht11_next   = 1'b1;
                 out_sel_next = 1'b1;
-                if (i_sw[1] && dht11_start) begin
+                if (dht11_start) begin
                     tick_cnt_next = 0;
                     bit_cnt_next = 0;
                     n_state = START;

@@ -49,6 +49,8 @@ module top_uart_fifo_watch #(
     wire [11:0] w_sr04_data;
     wire [15:0] w_dht11_data;
 
+    
+
     timepiecer U_SW_WT (
         .clk(clk),
         .rst(rst),
